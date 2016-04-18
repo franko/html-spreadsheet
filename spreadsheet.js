@@ -32,7 +32,7 @@ var decodeCellId = function(name) {
 };
 
 function createDataTable(initialRows, initialCols) {
-    var tableElement, tableRows = 0, tableCols = 0;
+    var tableElement, tableRows = 0, tableCols = 0, activeInput;
     var tableId = newTableId();
 
     var createTableTh = function(j) {
@@ -43,11 +43,10 @@ function createDataTable(initialRows, initialCols) {
 
     var createTableTd = function(i, j) {
         var td = document.createElement("td");
-        var input = document.createElement("input");
-        input.setAttribute("type", "text");
-        input.setAttribute("id", encodeCellId(tableId, i, j));
-        input.onpaste = cellOnPaste;
-        td.appendChild(input);
+        td.setAttribute("id", encodeCellId(tableId, i, j));
+        td.onclick = spreadSheetTdOnClick;
+        var text = document.createTextNode("");
+        td.appendChild(text);
         return td;
     };
 
@@ -60,22 +59,53 @@ function createDataTable(initialRows, initialCols) {
         return tr;
     }
 
+    var spreadSheetRemoveActiveInput = function(spreadSheet) {
+        if (!activeInput) return;
+        var td = activeInput;
+        var content = td.firstChild.value;
+        td.removeChild(td.firstChild);
+        var text = document.createTextNode(content);
+        td.appendChild(text);
+        activeInput = null;
+    };
+
+    var spreadSheetSetActiveInput = function(td, newElement) {
+        td.removeChild(td.firstChild);
+        td.appendChild(newElement);
+        activeInput = td;
+    };
+
+    var spreadSheetTdOnClick = function(e) {
+        var td = e.target;
+        var input = document.createElement("input");
+        input.setAttribute("type", "text");
+        input.value = td.childNodes[0].nodeValue;
+        input.onpaste = cellOnPaste;
+        spreadSheetRemoveActiveInput();
+        spreadSheetSetActiveInput(td, input);
+        input.focus();
+        return false;
+    };
+
     var setTableElements = function(data, indexes) {
         var i0 = indexes[0], j0 = indexes[1];
         for (var i = 0; i < data.length; i++) {
             var row = data[i];
             if (!row) continue;
             for (var j = 0; j < row.length; j++) {
-                var input = document.getElementById(encodeCellId(tableId, i0+i, j0+j));
-                if (input) {
-                    input.value = row[j];
+                var td = document.getElementById(encodeCellId(tableId, i0+i, j0+j));
+                if (td.firstChild.nodeName === "INPUT") {
+                    td.firstChild.value = row[j];
+                } else {
+                    td.firstChild.nodeValue = row[j];
                 }
             }
         }
     };
 
     var cellOnPaste = function(e) {
-        var indexes = decodeCellId(e.target.getAttribute("id"));
+        var cellId = e.target.parentNode.getAttribute("id");
+        var indexes = decodeCellId(cellId);
         var pastedText = e.clipboardData.getData('text/plain');
         var pastedData = parseTabular(pastedText);
         // When calling ensureTableSize we ask for one more row and column of what needed.

@@ -2,7 +2,8 @@ input {
     border: none;
     width: 80px;
     font-size: 14px;
-    padding: 2px;
+    font-family: sans-serif;
+    padding: 0;
 }
 
 input:hover {
@@ -23,7 +24,12 @@ table {
 
 td {
     border: 1px solid #999;
+    width: 80px;
+    height: 20px;
     padding: 0;
+    font-family: sans-serif;
+    font-size: 14px;
+    text-align: right;
 }
 
 th {
