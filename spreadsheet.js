@@ -55,6 +55,7 @@ function createDataTable(initialRows, initialCols) {
         td.onmousemove = onTdMouseMove;
         td.onmouseup = onTdMouseUp;
         td.onpaste = cellOnPaste;
+        td.onkeypress = onTdKeyPress;
         var text = document.createTextNode("");
         td.appendChild(text);
         return td;
@@ -111,6 +112,13 @@ function createDataTable(initialRows, initialCols) {
         if (!selStartIndexes) return true;
         selEndIndexes = getCellIndexes(e.target);
         spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
+    };
+
+    var onTdKeyPress = function(e) {
+        if (e.keyCode === 13) {
+            e.target.blur();
+            return false;
+        }
     };
 
     var setTableElements = function(data, indexes) {
