@@ -31,8 +31,14 @@ var decodeCellId = function(name) {
     }
 };
 
+var getCellIndexes = function(td) {
+    var id = td.getAttribute("id");
+    return decodeCellId(id);
+};
+
 function createDataTable(initialRows, initialCols) {
-    var tableElement, tableRows = 0, tableCols = 0, activeInput;
+    var tableElement, tableRows = 0, tableCols = 0;
+    var selStartIndexes, selEndIndexes;
     var tableId = newTableId();
 
     var createTableTh = function(j) {
@@ -44,7 +50,11 @@ function createDataTable(initialRows, initialCols) {
     var createTableTd = function(i, j) {
         var td = document.createElement("td");
         td.setAttribute("id", encodeCellId(tableId, i, j));
-        td.onclick = spreadSheetTdOnClick;
+        td.setAttribute("contenteditable", true);
+        td.onmousedown = onTdMouseDown;
+        td.onmousemove = onTdMouseMove;
+        td.onmouseup = onTdMouseUp;
+        td.onpaste = cellOnPaste;
         var text = document.createTextNode("");
         td.appendChild(text);
         return td;
@@ -59,32 +69,48 @@ function createDataTable(initialRows, initialCols) {
         return tr;
     }
 
-    var spreadSheetRemoveActiveInput = function(spreadSheet) {
-        if (!activeInput) return;
-        var td = activeInput;
-        var content = td.firstChild.value;
-        td.removeChild(td.firstChild);
-        var text = document.createTextNode(content);
-        td.appendChild(text);
-        activeInput = null;
+    var spreadSheetMarkSelected = function(sel1, sel2) {
+        var i1 = -1, j1 = -1, i2 = -1, j2 = -1;
+        if (sel1) {
+            i1 = sel1[0], j1 = sel1[1];
+            i2 = sel2[0], j2 = sel2[1];
+            if (i2 < i1) {
+                var itemp = i1;
+                i1 = i2;
+                i2 = itemp;
+            }
+            if (j2 < j1) {
+                var itemp = j1;
+                j1 = j2;
+                j2 = itemp;
+            }
+        }
+        for (var i = 0; i < tableRows; i++) {
+            for (var j = 0; j < tableCols; j++) {
+                var td = document.getElementById(encodeCellId(tableId, i, j));
+                if (i >= i1 && i <= i2 && j >= j1 && j <= j2) {
+                    td.className = "selected";
+                } else {
+                    td.className = "";
+                }
+            }
+        }
     };
 
-    var spreadSheetSetActiveInput = function(td, newElement) {
-        td.removeChild(td.firstChild);
-        td.appendChild(newElement);
-        activeInput = td;
+    var onTdMouseDown = function(e) {
+        selStartIndexes = getCellIndexes(e.target);
+        selEndIndexes = selStartIndexes;
+        spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
     };
 
-    var spreadSheetTdOnClick = function(e) {
-        var td = e.target;
-        var input = document.createElement("input");
-        input.setAttribute("type", "text");
-        input.value = td.childNodes[0].nodeValue;
-        input.onpaste = cellOnPaste;
-        spreadSheetRemoveActiveInput();
-        spreadSheetSetActiveInput(td, input);
-        input.focus();
-        return false;
+    var onTdMouseUp = function(e) {
+        selStartIndexes = null;
+    };
+
+    var onTdMouseMove = function(e) {
+        if (!selStartIndexes) return true;
+        selEndIndexes = getCellIndexes(e.target);
+        spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
     };
 
     var setTableElements = function(data, indexes) {
@@ -104,8 +130,7 @@ function createDataTable(initialRows, initialCols) {
     };
 
     var cellOnPaste = function(e) {
-        var cellId = e.target.parentNode.getAttribute("id");
-        var indexes = decodeCellId(cellId);
+        var indexes = getCellIndexes(e.target);
         var pastedText = e.clipboardData.getData('text/plain');
         var pastedData = parseTabular(pastedText);
         // When calling ensureTableSize we ask for one more row and column of what needed.
