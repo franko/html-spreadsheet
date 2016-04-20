@@ -38,7 +38,7 @@ var getCellIndexes = function(td) {
 
 function createDataTable(initialRows, initialCols) {
     var tableElement, tableRows = 0, tableCols = 0;
-    var selStartIndexes, selEndIndexes;
+    var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
 
     var createTableTh = function(j) {
@@ -101,17 +101,19 @@ function createDataTable(initialRows, initialCols) {
     var onTdMouseDown = function(e) {
         selStartIndexes = getCellIndexes(e.target);
         selEndIndexes = selStartIndexes;
+        selecting = true;
         spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
     };
 
     var onTdMouseUp = function(e) {
-        selStartIndexes = null;
+        selecting = false;
     };
 
     var onTdMouseMove = function(e) {
-        if (!selStartIndexes) return true;
-        selEndIndexes = getCellIndexes(e.target);
-        spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
+        if (selecting) {
+            selEndIndexes = getCellIndexes(e.target);
+            spreadSheetMarkSelected(selStartIndexes, selEndIndexes);
+        }
     };
 
     var onTdKeyPress = function(e) {
@@ -173,6 +175,32 @@ function createDataTable(initialRows, initialCols) {
         tableCols = colsRequest;
     };
 
+    var getSelection = function() {
+        if (!selStartIndexes) return "";
+        var i1 = selStartIndexes[0], j1 = selStartIndexes[1];
+        var i2 = selEndIndexes[0], j2 = selEndIndexes[1];
+        if (i2 < i1) {
+            var itemp = i1;
+            i1 = i2;
+            i2 = itemp;
+        }
+        if (j2 < j1) {
+            var itemp = j1;
+            j1 = j2;
+            j2 = itemp;
+        }
+        var lines = [];
+        for (var i = i1; i <= i2; i++) {
+            var row = [];
+            for (var j = j1; j <= j2; j++) {
+                var td = document.getElementById(encodeCellId(tableId, i, j));
+                row.push(td.textContent);
+            }
+            lines.push(row.join("\t"));
+        }
+        return lines.join("\n");
+    }
+
     // Create an empty table with thead child.
     tableElement = document.createElement("table");
     var thead = document.createElement("thead");
@@ -180,9 +208,15 @@ function createDataTable(initialRows, initialCols) {
 
     ensureTableSize(initialRows, initialCols);
 
-    return {element: tableElement};
+    return {element: tableElement, getSelection: getSelection};
 }
 
 var div = document.getElementById("data-table");
 var dataTable = createDataTable(4, 4);
 div.appendChild(dataTable.element);
+
+new Clipboard('.btn', {
+    text: function(trigger) {
+        return dataTable.getSelection();
+    }
+});
