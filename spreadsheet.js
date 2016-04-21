@@ -41,6 +41,34 @@ function createDataTable(initialRows, initialCols) {
     var selecting = false, selStartIndexes, selEndIndexes;
     var tableId = newTableId();
 
+    var getSelection = function() {
+        if (!selStartIndexes) return "";
+        var i1 = selStartIndexes[0], j1 = selStartIndexes[1];
+        var i2 = selEndIndexes[0], j2 = selEndIndexes[1];
+        if (i2 < i1) {
+            var itemp = i1;
+            i1 = i2;
+            i2 = itemp;
+        }
+        if (j2 < j1) {
+            var itemp = j1;
+            j1 = j2;
+            j2 = itemp;
+        }
+        var lines = [];
+        for (var i = i1; i <= i2; i++) {
+            var row = [];
+            for (var j = j1; j <= j2; j++) {
+                var td = document.getElementById(encodeCellId(tableId, i, j));
+                row.push(td.textContent);
+            }
+            lines.push(row.join("\t"));
+        }
+        return lines.join("\n");
+    }
+
+    var tableOnKeyDown = copyToClipboardOnKeyPress(getSelection);
+
     var createTableTh = function(j) {
         var th = document.createElement("th");
         th.innerHTML = String.fromCharCode(65 + j);
@@ -56,6 +84,7 @@ function createDataTable(initialRows, initialCols) {
         td.onmouseup = onTdMouseUp;
         td.onpaste = cellOnPaste;
         td.onkeypress = onTdKeyPress;
+        td.onkeydown = tableOnKeyDown;
         var text = document.createTextNode("");
         td.appendChild(text);
         return td;
@@ -175,32 +204,6 @@ function createDataTable(initialRows, initialCols) {
         tableCols = colsRequest;
     };
 
-    var getSelection = function() {
-        if (!selStartIndexes) return "";
-        var i1 = selStartIndexes[0], j1 = selStartIndexes[1];
-        var i2 = selEndIndexes[0], j2 = selEndIndexes[1];
-        if (i2 < i1) {
-            var itemp = i1;
-            i1 = i2;
-            i2 = itemp;
-        }
-        if (j2 < j1) {
-            var itemp = j1;
-            j1 = j2;
-            j2 = itemp;
-        }
-        var lines = [];
-        for (var i = i1; i <= i2; i++) {
-            var row = [];
-            for (var j = j1; j <= j2; j++) {
-                var td = document.getElementById(encodeCellId(tableId, i, j));
-                row.push(td.textContent);
-            }
-            lines.push(row.join("\t"));
-        }
-        return lines.join("\n");
-    }
-
     // Create an empty table with thead child.
     tableElement = document.createElement("table");
     var thead = document.createElement("thead");
@@ -208,15 +211,9 @@ function createDataTable(initialRows, initialCols) {
 
     ensureTableSize(initialRows, initialCols);
 
-    return {element: tableElement, getSelection: getSelection};
+    return {element: tableElement};
 }
 
 var div = document.getElementById("data-table");
 var dataTable = createDataTable(4, 4);
 div.appendChild(dataTable.element);
-
-new Clipboard('.btn', {
-    text: function(trigger) {
-        return dataTable.getSelection();
-    }
-});
