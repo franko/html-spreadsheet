@@ -1,24 +1,29 @@
-table {
+table.spreadsheet {
     border-collapse: collapse;
-}
-
-td {
-    border: 1px solid #999;
-    width: 60pt;
-    height: 16pt;
-    padding: 0;
-    text-align: right;
+    background-color: #fff;
     font-size: 10pt;
     font-family: sans-serif;
 }
 
-td.selected {
+.spreadsheet td {
+    border: 1px solid #eee;
+    width: 60pt;
+    height: 16pt;
+    padding: 0;
+    text-align: right;
+}
+
+.spreadsheet td.selected {
     background-color: #e0eeff;
 }
 
-th {
+.spreadsheet th {
     background-color: #ccc;
     padding: 1px 3px;
     font-weight: bold;
     text-align: center;
+}
+
+input.indirect {
+    background-color: #d8d8d8;
 }
