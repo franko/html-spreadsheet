@@ -2,17 +2,23 @@
 <html>
 <head>
   <title>JS Spreadsheet test</title>
-  <script src="clipboard.js" defer></script>
-  <script src="spreadsheet.js" defer></script>
+  <script src="clipboard.js"></script>
+  <script src="spreadsheet.js"></script>
 </head>
 <link rel="stylesheet" href="spreadsheet.css">
+<style>
+    body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    h1 { color: #4183c4; }
+</style>
 <body>
     <h1>Simple HTML table editor</h1>
     <p>A very simple Javascript implementation that provides spreadsheet-like
         tables where data can be directly modified or added.</p>
     <p>Try to edit the data in the table or to paste data from a spreadsheet
     application.</p>
-    <div id="data-table"></div>
+    <div id="data-table">
+        <input type="text" id="data-table-input">
+    </div>
     <h2>Features</h2>
     <ul>
         <li>Every cell can be directly modified.</li>
@@ -20,4 +26,10 @@
         <li>On paste enlarge the table automatically to accomodate the data.</li>
     </ul>
 </body>
+<script>
+    var div = document.getElementById("data-table");
+    var inputElement = document.getElementById("data-table-input");
+    var table = spreadsheet.createTable(12, 4, inputElement);
+    div.appendChild(table.element);
+</script>
 </html>
