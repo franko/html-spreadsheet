@@ -1,9 +1,13 @@
-# html-spreadsheet
+# HTML-Spreadsheet
 
-This repository is work-in-progress.
+Provides very simple spreadsheet-like data tables to copy & paste and edit data in tabular form.
 
-It does contains a HTML / js implementation to mimic a spreadsheet-like table in the browser.
+![Demonstration of HTML-Spreadsheet](https://github.com/franko/html-spreadsheet/blob/gh-pages/html-spreadsheet-show.gif)
 
-Currently data can be pasted from Excel but otherwise the application doesn't do anything interesting.
+It does the following things:
 
-The main limitation of this implementation is that a input text field is used for every cell.
+- copy & paste to and from spreadsheet applications
+- directly enter or modify data
+- delete entire regions of data using the "Delete" button
+
+The scope of HTML-Spreadsheet is limited to the features described above. Do not expect to be able to do everything you can do with Excel.
